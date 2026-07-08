@@ -1,0 +1,50 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "VanMoof-Konto verbinden",
+        "description": "Melde dich mit deinem VanMoof-Konto an. Die Integration lädt deine SA5/A5-Fahrräder, erstellt Fahrradzertifikate und richtet separate Home-Assistant-Geräte ein.\n\nLetzter Fehler: {error_detail}",
+        "data": {
+          "email": "E-Mail",
+          "password": "Passwort",
+          "poll_interval": "Abfrageintervall (Sekunden)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Verbindung zu VanMoof fehlgeschlagen.",
+      "invalid_auth": "VanMoof hat die Anmeldedaten oder das Token abgelehnt.",
+      "no_supported_bikes": "Anmeldung erfolgreich, aber keine unterstützten SA5/A5/S6-Fahrräder gefunden."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "VanMoof-Optionen",
+        "data": {
+          "poll_interval": "Abfrageintervall (Sekunden)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "battery": { "name": "Akku" },
+      "module_battery": { "name": "Modul-Akku" },
+      "distance": { "name": "Entfernung" },
+      "power_level": { "name": "Unterstützungsstufe" },
+      "connection_state": { "name": "Verbindungsstatus" },
+      "last_seen": { "name": "Zuletzt gesehen" },
+      "light_mode": { "name": "Lichtmodus" },
+      "firmware_info": { "name": "Firmware-Info" },
+      "errors": { "name": "Fehler" }
+    },
+    "binary_sensor": {
+      "locked": { "name": "Gesperrt" },
+      "in_range": { "name": "In Reichweite" }
+    },
+    "button": {
+      "refresh": { "name": "Jetzt aktualisieren" }
+    }
+  }
+}

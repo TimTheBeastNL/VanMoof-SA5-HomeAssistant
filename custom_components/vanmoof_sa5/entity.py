@@ -13,6 +13,8 @@ from .models import BikeState, VanMoofBike
 class VanMoofEntity(CoordinatorEntity[VanMoofDataUpdateCoordinator]):
     """Base entity bound to one bike."""
 
+    _attr_has_entity_name = True
+
     def __init__(self, coordinator: VanMoofDataUpdateCoordinator, bike_id: str) -> None:
         super().__init__(coordinator)
         self._bike_id = bike_id
