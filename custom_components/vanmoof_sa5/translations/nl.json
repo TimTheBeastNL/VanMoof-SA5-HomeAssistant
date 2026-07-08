@@ -1,0 +1,50 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Verbind je VanMoof-account",
+        "description": "Log in met je VanMoof-account. De integratie haalt je SA5/A5-fietsen op, genereert fietscertificaten en maakt aparte Home Assistant-apparaten aan.\n\nLaatste fout: {error_detail}",
+        "data": {
+          "email": "E-mail",
+          "password": "Wachtwoord",
+          "poll_interval": "Pollinterval (seconden)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Kan geen verbinding maken met VanMoof.",
+      "invalid_auth": "VanMoof heeft de inloggegevens of het token geweigerd.",
+      "no_supported_bikes": "Account succesvol verbonden, maar er zijn geen ondersteunde SA5/A5/S6-fietsen gevonden."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "VanMoof-opties",
+        "data": {
+          "poll_interval": "Pollinterval (seconden)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "battery": { "name": "Accu" },
+      "module_battery": { "name": "Module-accu" },
+      "distance": { "name": "Afstand" },
+      "power_level": { "name": "Ondersteuningsniveau" },
+      "connection_state": { "name": "Verbindingsstatus" },
+      "last_seen": { "name": "Laatst gezien" },
+      "light_mode": { "name": "Lichtmodus" },
+      "firmware_info": { "name": "Firmware-info" },
+      "errors": { "name": "Fouten" }
+    },
+    "binary_sensor": {
+      "locked": { "name": "Vergrendeld" },
+      "in_range": { "name": "Binnen bereik" }
+    },
+    "button": {
+      "refresh": { "name": "Nu vernieuwen" }
+    }
+  }
+}

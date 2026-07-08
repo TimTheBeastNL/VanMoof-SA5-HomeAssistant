@@ -3,8 +3,8 @@
   "name": "VanMoof SA5",
   "version": "0.2.0",
   "config_flow": true,
-  "documentation": "https://github.com/j-o-a-c-h-i/VanMoof-SA5-HomeAssistant",
-  "issue_tracker": "https://github.com/j-o-a-c-h-i/VanMoof-SA5-HomeAssistant/issues",
+  "documentation": "https://github.com/TimTheBeastNL/VanMoof-SA5-HomeAssistant",
+  "issue_tracker": "https://github.com/TimTheBeastNL/VanMoof-SA5-HomeAssistant/issues",
   "requirements": [
     "bleak>=0.22.3",
     "cryptography>=44.0.0"

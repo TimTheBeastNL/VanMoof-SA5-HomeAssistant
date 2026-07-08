@@ -4,12 +4,6 @@ Home Assistant integration for the VanMoof S/A5 e-bike series. This custom integ
 
 > **STATUS: BETA** — use at your own risk.
 
-## Fixes in this fork
-
-- **BLE reconnect** — uses `bleak_retry_connector` for reliable reconnection after signal loss
-- **API token refresh** — automatically re-authenticates when tokens expire, no manual re-login needed
-- **Reload entry crash** — fixes `ConfigEntryError` that occurred when the integration reloaded
-
 ## Features
 
 - Battery sensor
@@ -21,7 +15,7 @@ Home Assistant integration for the VanMoof S/A5 e-bike series. This custom integ
 
 1. In Home Assistant, open **HACS**
 2. Go to **Integrations** → three-dot menu → **Custom repositories**
-3. Add: `https://github.com/j-o-a-c-h-i/VanMoof-SA5-HomeAssistant`
+3. Add: `https://github.com/TimTheBeastNL/VanMoof-SA5-HomeAssistant`
 4. Category: **Integration**
 5. Install and restart Home Assistant
 6. Go to **Settings → Devices & Services → Add Integration** → search "VanMoof SA5"
@@ -34,5 +28,5 @@ Home Assistant integration for the VanMoof S/A5 e-bike series. This custom integ
 
 ## Special thanks
 
-- [TimTheBeastNL](https://github.com/TimTheBeastNL/VanMoof-SA5-HomeAssistant) — original integration
-- [Victor Lagerfors](https://github.com/victorlagerfors/vanmoof-s5-homey
+- [j-o-a-c-h-i](https://github.com/j-o-a-c-h-i)
+- [Victor Lagerfors](https://github.com/victorlagerfors/vanmoof-s5-homey)
