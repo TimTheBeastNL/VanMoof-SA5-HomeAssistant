@@ -29,22 +29,86 @@
   },
   "entity": {
     "sensor": {
-      "battery": { "name": "Akku" },
-      "module_battery": { "name": "Modul-Akku" },
-      "distance": { "name": "Entfernung" },
-      "power_level": { "name": "Unterstützungsstufe" },
-      "connection_state": { "name": "Verbindungsstatus" },
-      "last_seen": { "name": "Zuletzt gesehen" },
-      "light_mode": { "name": "Lichtmodus" },
-      "firmware_info": { "name": "Firmware-Info" },
-      "errors": { "name": "Fehler" }
+      "battery": {
+        "name": "Akku"
+      },
+      "module_battery": {
+        "name": "Modul-Akku"
+      },
+      "distance": {
+        "name": "Entfernung"
+      },
+      "power_level": {
+        "name": "Unterstützungsstufe"
+      },
+      "connection_state": {
+        "name": "Verbindungsstatus"
+      },
+      "last_seen": {
+        "name": "Zuletzt gesehen"
+      },
+      "light_mode": {
+        "name": "Lichtmodus"
+      },
+      "firmware_info": {
+        "name": "Firmware-Info"
+      },
+      "errors": {
+        "name": "Fehler"
+      },
+      "lock_state": {
+        "name": "Sperrstatus",
+        "state": {
+          "locked": "Gesperrt",
+          "unlocking": "Wird entsperrt",
+          "unlocked": "Entsperrt"
+        }
+      },
+      "bike_state": {
+        "name": "Radstatus",
+        "state": {
+          "off": "Aus",
+          "shipping": "Versand",
+          "standby": "Standby",
+          "on": "An"
+        }
+      },
+      "region": {
+        "name": "Region",
+        "state": {
+          "eu": "EU",
+          "us": "USA",
+          "japan": "Japan",
+          "offroad": "Offroad"
+        }
+      },
+      "speed_limit": {
+        "name": "Geschwindigkeitsgrenze"
+      },
+      "firmware_version": {
+        "name": "Firmware-Version"
+      },
+      "find_my_version": {
+        "name": "Find-My-Version"
+      }
     },
     "binary_sensor": {
-      "locked": { "name": "Gesperrt" },
-      "in_range": { "name": "In Reichweite" }
+      "locked": {
+        "name": "Gesperrt"
+      },
+      "in_range": {
+        "name": "In Reichweite"
+      }
     },
     "button": {
-      "refresh": { "name": "Jetzt aktualisieren" }
+      "refresh": {
+        "name": "Jetzt aktualisieren"
+      }
+    },
+    "update": {
+      "firmware": {
+        "name": "Firmware"
+      }
     }
   }
 }

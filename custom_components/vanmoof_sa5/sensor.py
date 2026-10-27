@@ -12,7 +12,7 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import EntityCategory, UnitOfLength, PERCENTAGE
+from homeassistant.const import PERCENTAGE, EntityCategory, UnitOfLength
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
@@ -24,6 +24,7 @@ from .entity import VanMoofEntity
 @dataclass(frozen=True, kw_only=True)
 class VanMoofSensorDescription(SensorEntityDescription):
     value_fn: Callable[[Any], Any]
+    attributes_fn: Callable[[Any], dict[str, Any]] | None = None
 
 
 SENSORS: tuple[VanMoofSensorDescription, ...] = (
@@ -52,9 +53,40 @@ SENSORS: tuple[VanMoofSensorDescription, ...] = (
         value_fn=lambda state: state.distance_km,
     ),
     VanMoofSensorDescription(
+        key="lock_state",
+        translation_key="lock_state",
+        device_class=SensorDeviceClass.ENUM,
+        options=["locked", "unlocking", "unlocked"],
+        value_fn=lambda state: state.lock_state,
+    ),
+    VanMoofSensorDescription(
+        key="bike_state",
+        translation_key="bike_state",
+        device_class=SensorDeviceClass.ENUM,
+        options=["off", "shipping", "standby", "on"],
+        value_fn=lambda state: state.bike_state,
+    ),
+    VanMoofSensorDescription(
+        key="region",
+        translation_key="region",
+        device_class=SensorDeviceClass.ENUM,
+        options=["eu", "us", "japan", "offroad"],
+        value_fn=lambda state: state.region,
+    ),
+    VanMoofSensorDescription(
+        key="speed_limit",
+        translation_key="speed_limit",
+        value_fn=lambda state: state.speed_limit,
+    ),
+    VanMoofSensorDescription(
         key="power_level",
         translation_key="power_level",
         value_fn=lambda state: state.power_level,
+    ),
+    VanMoofSensorDescription(
+        key="light_mode",
+        translation_key="light_mode",
+        value_fn=lambda state: state.light_mode,
     ),
     VanMoofSensorDescription(
         key="connection_state",
@@ -69,23 +101,38 @@ SENSORS: tuple[VanMoofSensorDescription, ...] = (
         value_fn=lambda state: state.last_seen,
     ),
     VanMoofSensorDescription(
-        key="light_mode",
-        translation_key="light_mode",
-        value_fn=lambda state: state.light_mode,
+        key="firmware_version",
+        translation_key="firmware_version",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        value_fn=lambda state: state.firmware_version,
+    ),
+    VanMoofSensorDescription(
+        key="find_my_version",
+        translation_key="find_my_version",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
+        value_fn=lambda state: state.find_my_version,
     ),
     VanMoofSensorDescription(
         key="firmware_info",
         translation_key="firmware_info",
         entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
         value_fn=lambda state: state.firmware_info,
     ),
     VanMoofSensorDescription(
         key="errors",
         translation_key="errors",
         entity_category=EntityCategory.DIAGNOSTIC,
-        value_fn=lambda state: state.errors,
+        state_class=SensorStateClass.MEASUREMENT,
+        value_fn=lambda state: state.error_count,
+        attributes_fn=lambda state: {
+            "bike_errors": state.bike_errors,
+            "connection_error": state.errors,
+        },
     ),
 )
+
 
 
 async def async_setup_entry(
@@ -94,7 +141,7 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     coordinator: VanMoofDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
-    entities: list[VanMoofSensor] = []
+    entities: list[SensorEntity] = []
     for bike_id in coordinator.data.bikes:
         entities.extend(VanMoofSensor(coordinator, bike_id, description) for description in SENSORS)
     async_add_entities(entities)
@@ -120,5 +167,14 @@ class VanMoofSensor(VanMoofEntity, SensorEntity):
         return self.entity_description.value_fn(self.bike_state)
 
     @property
+    def extra_state_attributes(self) -> dict[str, Any] | None:
+        if self.entity_description.attributes_fn is None:
+            return None
+        return self.entity_description.attributes_fn(self.bike_state)
+
+    @property
     def available(self) -> bool:
+        if self.entity_description.key in ("connection_state", "last_seen", "errors"):
+            return True
         return self.bike_state.available
+

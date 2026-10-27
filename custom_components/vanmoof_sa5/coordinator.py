@@ -1,10 +1,11 @@
 """Coordinator for the VanMoof SA5 integration."""
 
 from __future__ import annotations
+
+import asyncio
 import logging
 from dataclasses import dataclass
 from datetime import timedelta
-from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -13,11 +14,23 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 from homeassistant.util import dt as dt_util
 
 from .api import VanMoofApiClient, VanMoofApiError
-from .ble import VanMoofBikeBleClient, VanMoofBleError
-from .const import CONF_POLL_INTERVAL, DEFAULT_POLL_INTERVAL, DOMAIN
+from .ble import VanMoofBikeBleClient, VanMoofBleConnectError, VanMoofBleError
+from .const import (
+    CONF_POLL_INTERVAL,
+    DEFAULT_POLL_INTERVAL,
+    DOMAIN,
+)
 from .models import BikeState, VanMoofBike
 
 _LOGGER = logging.getLogger(__name__)
+
+
+def _connection_state_for(err: VanMoofBleError) -> str:
+    if isinstance(err, VanMoofBleConnectError):
+        return "unreachable"
+    if "No nearby VanMoof BLE advertisements were found" in str(err):
+        return "out_of_range"
+    return "error"
 
 
 @dataclass(slots=True)
@@ -39,14 +52,19 @@ class VanMoofDataUpdateCoordinator(DataUpdateCoordinator[VanMoofCoordinatorData]
     ) -> None:
         self.entry = entry
         self.api = api
+        self._ble_locks: dict[str, asyncio.Lock] = {}
         super().__init__(
             hass,
             _LOGGER,
+            config_entry=entry,
             name=DOMAIN,
             update_interval=timedelta(
                 seconds=entry.options.get(CONF_POLL_INTERVAL, DEFAULT_POLL_INTERVAL)
             ),
         )
+
+    def _lock_for(self, bike_id: str) -> asyncio.Lock:
+        return self._ble_locks.setdefault(bike_id, asyncio.Lock())
 
     async def _async_update_data(self) -> VanMoofCoordinatorData:
         try:
@@ -58,33 +76,31 @@ class VanMoofDataUpdateCoordinator(DataUpdateCoordinator[VanMoofCoordinatorData]
 
         states: dict[str, BikeState] = {}
         for bike in self.api.bikes.values():
-            previous_state = None
-            if self.data:
-                previous_state = self.data.states.get(bike.unique_id)
+            previous_state = self.data.states.get(bike.unique_id) if self.data else None
             try:
-                state, address = await VanMoofBikeBleClient(bike).async_fetch_state()
+                async with self._lock_for(bike.unique_id):
+                    state, address = await VanMoofBikeBleClient(
+                        bike, self.hass
+                    ).async_fetch_state()
                 if address and bike.ble_address != address:
                     bike.ble_address = address
                 state.last_seen = dt_util.utcnow()
+                state.carry_over(previous_state)
                 states[bike.unique_id] = state
             except VanMoofBleError as err:
-                states[bike.unique_id] = BikeState(
+                state = BikeState(
                     available=False,
                     in_range=False,
-                    power_level=previous_state.power_level if previous_state else None,
-                    light_mode=previous_state.light_mode if previous_state else None,
-                    speed_limit=previous_state.speed_limit if previous_state else None,
-                    connection_state=(
-                        "out_of_range"
-                        if "No nearby VanMoof BLE advertisements were found" in str(err)
-                        else "error"
-                    ),
-                    last_seen=previous_state.last_seen if previous_state else None,
+                    connection_state=_connection_state_for(err),
                     errors=str(err),
                 )
+                state.carry_over(previous_state)
+                states[bike.unique_id] = state
 
         self.hass.async_create_task(self._async_persist_entry())
-        return VanMoofCoordinatorData(bikes=dict(self.api.bikes), states=states)
+        return VanMoofCoordinatorData(
+            bikes=dict(self.api.bikes), states=states
+        )
 
     async def _async_persist_entry(self) -> None:
         new_data = self.api.export_entry_data()
@@ -94,3 +110,4 @@ class VanMoofDataUpdateCoordinator(DataUpdateCoordinator[VanMoofCoordinatorData]
     async def async_manual_refresh(self) -> None:
         """Run an immediate refresh."""
         await self.async_request_refresh()
+

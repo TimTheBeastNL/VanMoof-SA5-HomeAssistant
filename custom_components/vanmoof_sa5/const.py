@@ -4,7 +4,7 @@ from __future__ import annotations
 
 DOMAIN = "vanmoof_sa5"
 
-PLATFORMS = ["sensor", "binary_sensor", "button"]
+PLATFORMS = ["sensor", "binary_sensor", "button", "update"]
 
 DEFAULT_SCAN_SECONDS = 8.0
 DEFAULT_POLL_INTERVAL = 300

@@ -29,22 +29,86 @@
   },
   "entity": {
     "sensor": {
-      "battery": { "name": "Battery" },
-      "module_battery": { "name": "Module battery" },
-      "distance": { "name": "Distance" },
-      "power_level": { "name": "Power level" },
-      "connection_state": { "name": "Connection state" },
-      "last_seen": { "name": "Last seen" },
-      "light_mode": { "name": "Light mode" },
-      "firmware_info": { "name": "Firmware info" },
-      "errors": { "name": "Errors" }
+      "battery": {
+        "name": "Battery"
+      },
+      "module_battery": {
+        "name": "Module battery"
+      },
+      "distance": {
+        "name": "Distance"
+      },
+      "power_level": {
+        "name": "Power level"
+      },
+      "connection_state": {
+        "name": "Connection state"
+      },
+      "last_seen": {
+        "name": "Last seen"
+      },
+      "light_mode": {
+        "name": "Light mode"
+      },
+      "firmware_info": {
+        "name": "Firmware info"
+      },
+      "errors": {
+        "name": "Errors"
+      },
+      "lock_state": {
+        "name": "Lock state",
+        "state": {
+          "locked": "Locked",
+          "unlocking": "Unlocking",
+          "unlocked": "Unlocked"
+        }
+      },
+      "bike_state": {
+        "name": "Bike state",
+        "state": {
+          "off": "Off",
+          "shipping": "Shipping",
+          "standby": "Standby",
+          "on": "On"
+        }
+      },
+      "region": {
+        "name": "Region",
+        "state": {
+          "eu": "EU",
+          "us": "US",
+          "japan": "Japan",
+          "offroad": "Offroad"
+        }
+      },
+      "speed_limit": {
+        "name": "Speed limit"
+      },
+      "firmware_version": {
+        "name": "Firmware version"
+      },
+      "find_my_version": {
+        "name": "Find My version"
+      }
     },
     "binary_sensor": {
-      "locked": { "name": "Locked" },
-      "in_range": { "name": "In range" }
+      "locked": {
+        "name": "Locked"
+      },
+      "in_range": {
+        "name": "In range"
+      }
     },
     "button": {
-      "refresh": { "name": "Refresh now" }
+      "refresh": {
+        "name": "Refresh now"
+      }
+    },
+    "update": {
+      "firmware": {
+        "name": "Firmware"
+      }
     }
   }
 }

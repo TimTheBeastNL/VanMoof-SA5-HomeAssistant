@@ -98,10 +98,13 @@ class VanMoofConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 class VanMoofOptionsFlow(config_entries.OptionsFlow):
     """Handle VanMoof SA5 options."""
 
-    def __init__(self, config_entry) -> None:
-        self.config_entry = config_entry
+    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
+        # Kept under a private name: ``config_entry`` is a read-only property
+        # on newer Home Assistant versions and missing on older ones.
+        self._entry = config_entry
 
     async def async_step_init(self, user_input: dict[str, Any] | None = None):
+        options = self._entry.options
         if user_input is not None:
             return self.async_create_entry(title="", data=user_input)
 
@@ -111,10 +114,8 @@ class VanMoofOptionsFlow(config_entries.OptionsFlow):
                 {
                     vol.Optional(
                         CONF_POLL_INTERVAL,
-                        default=self.config_entry.options.get(
-                            CONF_POLL_INTERVAL, DEFAULT_POLL_INTERVAL
-                        ),
-                    ): vol.All(vol.Coerce(int), vol.Range(min=60, max=3600))
+                        default=int(options.get(CONF_POLL_INTERVAL, DEFAULT_POLL_INTERVAL)),
+                    ): vol.All(vol.Coerce(int), vol.Range(min=60, max=3600)),
                 }
             ),
         )

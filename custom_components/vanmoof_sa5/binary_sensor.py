@@ -28,7 +28,6 @@ BINARY_SENSORS: tuple[VanMoofBinarySensorDescription, ...] = (
     VanMoofBinarySensorDescription(
         key="locked",
         translation_key="locked",
-        device_class=BinarySensorDeviceClass.LOCK,
         value_fn=lambda state: state.locked,
     ),
     VanMoofBinarySensorDescription(

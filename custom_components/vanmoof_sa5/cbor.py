@@ -12,22 +12,14 @@ def encode_cbor(value: object) -> bytes:
 
     if isinstance(value, int):
         if value < 0:
-            raise ValueError("Negative integers are not supported")
-        if value < 24:
-            return bytes([value])
-        if value < 256:
-            return bytes([0x18, value])
-        if value < 65536:
-            return bytes([0x19, (value >> 8) & 0xFF, value & 0xFF])
-        return bytes(
-            [
-                0x1A,
-                (value >> 24) & 0xFF,
-                (value >> 16) & 0xFF,
-                (value >> 8) & 0xFF,
-                value & 0xFF,
-            ]
-        )
+            return _encode_head(1, -1 - value)
+        return _encode_head(0, value)
+
+    if isinstance(value, dict):
+        if len(value) >= 24:
+            raise ValueError("Large maps are not supported")
+        encoded = b"".join(encode_cbor(k) + encode_cbor(v) for k, v in value.items())
+        return bytes([0xA0 + len(value)]) + encoded
 
     if isinstance(value, str):
         encoded = value.encode("utf-8")
@@ -43,6 +35,20 @@ def encode_cbor(value: object) -> bytes:
         return bytes([0x80 + len(items)]) + b"".join(items)
 
     raise ValueError(f"Unsupported CBOR type: {type(value)!r}")
+
+
+def _encode_head(major: int, argument: int) -> bytes:
+    """Encode a CBOR head (major type + unsigned argument)."""
+    prefix = major << 5
+    if argument < 24:
+        return bytes([prefix | argument])
+    if argument < 0x100:
+        return bytes([prefix | 24, argument])
+    if argument < 0x10000:
+        return bytes([prefix | 25]) + argument.to_bytes(2, "big")
+    if argument < 0x100000000:
+        return bytes([prefix | 26]) + argument.to_bytes(4, "big")
+    raise ValueError("Integer too large for the VanMoof CBOR subset")
 
 
 def _encode_bytes_like(data: bytes, short_prefix: int, long_prefix: int) -> bytes:

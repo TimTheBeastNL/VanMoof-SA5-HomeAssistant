@@ -55,6 +55,7 @@ class VanMoofApiClient:
         self._auth_token: str | None = entry_data.get(CONF_AUTH_TOKEN)
         self._app_token: str | None = entry_data.get(CONF_APP_TOKEN)
         self._refresh_token: str | None = entry_data.get(CONF_REFRESH_TOKEN)
+        self._customer_uuid: str | None = None
         self._bikes: dict[str, VanMoofBike] = {
             bike_payload["unique_id"]: VanMoofBike(**bike_payload)
             for bike_payload in entry_data.get(CONF_BIKES, [])
@@ -211,6 +212,7 @@ class VanMoofApiClient:
         customer_uuid = customer.get("uuid")
         if not customer_uuid:
             raise VanMoofApiError("VanMoof customer UUID missing from response")
+        self._customer_uuid = customer_uuid
 
         bike_payloads = customer.get("bikes", [])
         if not bike_payloads:
@@ -421,3 +423,4 @@ def parse_certificate_expiry(certificate_b64: str) -> int | None:
 
     expiry = payload.get("e")
     return int(expiry) if isinstance(expiry, int) else None
+

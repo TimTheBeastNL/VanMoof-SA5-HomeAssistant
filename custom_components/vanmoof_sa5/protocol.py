@@ -1,4 +1,16 @@
-"""VanMoof SA5 BLE protocol helpers."""
+"""VanMoof SA5 BLE protocol helpers.
+
+Topic ids, value encodings and enum mappings were taken from the official
+VanMoof Android app (v26.5.1, class ``ElectrifiedS5A5`` profile).
+
+Wire format of one application message (before fragmentation)::
+
+    [payload type: 1 byte] [topic: 2 bytes big endian] [CBOR value]
+
+Payload type 1 is used both for notifications from the bike and for writes
+to the bike. Writing a topic uses the *write topic* which is usually the
+read topic + 1 (e.g. read 106 = light mode, write 107 = set light mode).
+"""
 
 from __future__ import annotations
 
@@ -8,7 +20,7 @@ from enum import IntEnum
 
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
-from .cbor import decode_cbor
+from .cbor import decode_cbor, encode_cbor
 
 
 class PayloadType(IntEnum):
@@ -24,62 +36,169 @@ class PayloadType(IntEnum):
 
 
 class Topic(IntEnum):
-    """Topics exposed by the VanMoof bike."""
+    """Topics the bike publishes (read side)."""
 
-    LOCK_STATE = 1
+    BIKE_STATE = 1
     MODULE_BATTERY = 16
     BATTERY_LEVEL = 24
+    ESHIFTER_HEARTBEAT = 53
     CALORIES = 73
     SPEED = 80
-    GEAR = 97
+    REGION = 97
+    SHIFTING_POINTS = 104
     POWER_LEVEL = 101
     LIGHT_MODE = 106
-    ALARM = 110
+    LIGHT_SENSOR = 108
+    ALARM_MODE = 110
+    ANIMATION_THEME = 112
     BELL_SOUND = 114
     BACKUP_CODE = 116
-    LOCK_STATE_ALT = 161
+    BRAKE_LIGHT = 123
+    INDICATOR_LIGHT = 125
+    RIDING_DISPLAY = 121
+    LIGHT_SENSOR_INFO = 129
+    LOCK_STATE = 161
+    UNLOCK_REJECTED = 163
     DISTANCE = 165
     FW_INFO = 192
     FIND_MY = 225
     ERRORS = 255
+    FIRMWARE_VERSION = 20481
+    UPDATE_AVAILABLE = 20496
     SUBSCRIBE_CONTROL = 0xE001
+    UNSUBSCRIBE_CONTROL = 0xE002
+
+
+class WriteTopic(IntEnum):
+    """Topics the bike accepts writes on."""
+
+    REGION = 98
+    SHIFTING_POINTS = 105
+    POWER_LEVEL = 103
+    LIGHT_MODE = 107
+    ALARM_MODE = 111
+    ANIMATION_THEME = 113
+    BELL_SOUND = 115
+    BACKUP_CODE = 117
+    RIDING_DISPLAY = 122
+    BRAKE_LIGHT = 124
+    INDICATOR_LIGHT = 126
+    UNLOCK = 160
+    TOUCH_UNLOCK = 164
 
 
 TOPIC_NAMES: dict[int, str] = {
-    Topic.LOCK_STATE: "lock_state",
+    Topic.BIKE_STATE: "bike_state",
     Topic.MODULE_BATTERY: "module_battery",
     Topic.BATTERY_LEVEL: "battery_level",
+    Topic.ESHIFTER_HEARTBEAT: "eshifter_heartbeat",
     Topic.CALORIES: "calories",
     Topic.SPEED: "speed",
-    Topic.GEAR: "gear",
+    Topic.REGION: "region",
+    Topic.SHIFTING_POINTS: "shifting_points",
     Topic.POWER_LEVEL: "power_level",
     Topic.LIGHT_MODE: "light_mode",
-    Topic.ALARM: "alarm",
+    Topic.LIGHT_SENSOR: "light_sensor",
+    Topic.ALARM_MODE: "alarm_mode",
+    Topic.ANIMATION_THEME: "animation_theme",
     Topic.BELL_SOUND: "bell_sound",
-    Topic.LOCK_STATE_ALT: "lock_state_alt",
+    Topic.BACKUP_CODE: "backup_code",
+    Topic.BRAKE_LIGHT: "brake_light",
+    Topic.INDICATOR_LIGHT: "indicator_light",
+    Topic.RIDING_DISPLAY: "riding_display",
+    Topic.LIGHT_SENSOR_INFO: "light_sensor_info",
+    Topic.LOCK_STATE: "lock_state",
+    Topic.UNLOCK_REJECTED: "unlock_rejected",
     Topic.DISTANCE: "distance",
-    Topic.FW_INFO: "fw_info",
+    Topic.FW_INFO: "find_my_version",
     Topic.FIND_MY: "find_my",
     Topic.ERRORS: "errors",
+    Topic.FIRMWARE_VERSION: "firmware_version",
+    Topic.UPDATE_AVAILABLE: "update_available",
 }
 
+# Same subscription list the official app sends after authentication.
+# The backup code topic (116) is deliberately left out: it is a secret that
+# Home Assistant has no use for.
 ALL_TOPICS: list[int] = [
-    Topic.LOCK_STATE,
+    Topic.BIKE_STATE,
     Topic.BATTERY_LEVEL,
-    Topic.LOCK_STATE_ALT,
+    Topic.CALORIES,
+    Topic.SPEED,
+    Topic.REGION,
+    Topic.SHIFTING_POINTS,
     Topic.POWER_LEVEL,
     Topic.LIGHT_MODE,
+    Topic.ALARM_MODE,
+    Topic.BELL_SOUND,
+    Topic.RIDING_DISPLAY,
+    Topic.BRAKE_LIGHT,
+    Topic.INDICATOR_LIGHT,
+    Topic.ANIMATION_THEME,
+    Topic.LOCK_STATE,
+    Topic.UNLOCK_REJECTED,
     Topic.DISTANCE,
     Topic.FW_INFO,
-    Topic.ERRORS,
-    Topic.CALORIES,
     Topic.FIND_MY,
-    Topic.ALARM,
-    Topic.BELL_SOUND,
-    Topic.SPEED,
-    Topic.GEAR,
+    Topic.ERRORS,
+    Topic.FIRMWARE_VERSION,
+    Topic.UPDATE_AVAILABLE,
     Topic.MODULE_BATTERY,
 ]
+
+
+# ---------------------------------------------------------------------------
+# Value mappings (raw CBOR value <-> friendly string)
+# ---------------------------------------------------------------------------
+
+BIKE_STATES: dict[int, str] = {0: "off", 1: "shipping", 2: "standby", 3: "on"}
+
+LOCK_STATES: dict[int, str] = {1: "locked", 2: "unlocking", 3: "unlocked"}
+
+POWER_LEVEL_OPTIONS: dict[int, str] = {0: "off", 1: "1", 2: "2", 3: "3", 4: "4"}
+
+# App: 1 = ALWAYS_ON, 2 = OFF, 3 = AUTO
+LIGHT_MODES: dict[int, str] = {1: "on", 2: "off", 3: "auto"}
+
+BELL_SOUNDS: dict[int, str] = {
+    0: "ding_dong",
+    1: "party_horn",
+    2: "ping",
+    3: "vanmoof",
+    4: "ship_horn",
+}
+
+# App: 0 = EU, 1 = US, 2 = JAPAN, 3 = OFFROAD
+REGIONS: dict[int, str] = {0: "eu", 1: "us", 2: "japan", 3: "offroad"}
+# Speed limit label per region, shown by the app for S5/A5
+REGION_SPEED_LIMITS: dict[str, str] = {
+    "eu": "25 km/h",
+    "us": "32 km/h",
+    "japan": "24 km/h",
+    "offroad": "unrestricted",
+}
+
+RIDING_DISPLAY_MODES: dict[int, str] = {0: "speed", 1: "motor_power"}
+ANIMATION_THEMES: dict[int, str] = {0: "default", 1: "pride"}
+
+# Touch unlock "distance" -> RSSI threshold in dBm (values the app uses for S5/A5)
+TOUCH_UNLOCK_RSSI: dict[str, int] = {
+    "closest": -70,
+    "close": -75,
+    "average": -80,
+    "far": -85,
+    "furthest": -90,
+}
+
+
+def invert(mapping: dict[int, str]) -> dict[str, int]:
+    """Return the reverse mapping."""
+    return {value: key for key, value in mapping.items()}
+
+
+# ---------------------------------------------------------------------------
+# Decoded message containers
+# ---------------------------------------------------------------------------
 
 
 @dataclass(slots=True)
@@ -114,6 +233,101 @@ class ParamMessage:
 
 
 S5Message = TopicMessage | AuthMessage | ChallengeMessage | ParamMessage
+
+
+@dataclass(frozen=True, slots=True)
+class BleWrite:
+    """One write to a bike topic."""
+
+    topic: int
+    value: object
+    label: str = ""
+
+    def to_payload(self) -> bytes:
+        """Return the unfragmented application payload."""
+        return build_write_message(self.topic, self.value)
+
+
+# ---------------------------------------------------------------------------
+# Builders
+# ---------------------------------------------------------------------------
+
+
+def build_write_message(topic: int, value: object) -> bytes:
+    """Build a topic write: payload type 1 + topic (BE) + CBOR value."""
+    return (
+        bytes([PayloadType.TOPIC_CBOR])
+        + int(topic).to_bytes(2, "big")
+        + encode_cbor(value)
+    )
+
+
+def write_power_level(level: int) -> BleWrite:
+    """Set the assist level 0 (off) .. 4."""
+    if level not in POWER_LEVEL_OPTIONS:
+        raise ValueError(f"Invalid power level: {level}")
+    return BleWrite(WriteTopic.POWER_LEVEL, level, "power_level")
+
+
+def write_light_mode(mode: str) -> BleWrite:
+    """Set the light mode: on, off or auto."""
+    reverse = invert(LIGHT_MODES)
+    if mode not in reverse:
+        raise ValueError(f"Invalid light mode: {mode}")
+    return BleWrite(WriteTopic.LIGHT_MODE, reverse[mode], "light_mode")
+
+
+def write_bell_sound(sound: str) -> BleWrite:
+    """Select the bell sound."""
+    reverse = invert(BELL_SOUNDS)
+    if sound not in reverse:
+        raise ValueError(f"Invalid bell sound: {sound}")
+    return BleWrite(WriteTopic.BELL_SOUND, reverse[sound], "bell_sound")
+
+
+def write_alarm_mode(enabled: bool) -> BleWrite:
+    """Enable or disable the alarm."""
+    return BleWrite(WriteTopic.ALARM_MODE, bool(enabled), "alarm_mode")
+
+
+def write_brake_light(enabled: bool) -> BleWrite:
+    """Enable or disable the brake light mode."""
+    return BleWrite(WriteTopic.BRAKE_LIGHT, bool(enabled), "brake_light")
+
+
+def write_indicator_light(enabled: bool) -> BleWrite:
+    """Enable or disable the indicator light mode."""
+    return BleWrite(WriteTopic.INDICATOR_LIGHT, bool(enabled), "indicator_light")
+
+
+def write_riding_display(mode: str) -> BleWrite:
+    """Select what the top tube display shows while riding."""
+    reverse = invert(RIDING_DISPLAY_MODES)
+    if mode not in reverse:
+        raise ValueError(f"Invalid riding display mode: {mode}")
+    return BleWrite(WriteTopic.RIDING_DISPLAY, reverse[mode], "riding_display")
+
+
+def write_animation_theme(theme: str) -> BleWrite:
+    """Select the start-up animation theme."""
+    reverse = invert(ANIMATION_THEMES)
+    if theme not in reverse:
+        raise ValueError(f"Invalid animation theme: {theme}")
+    return BleWrite(WriteTopic.ANIMATION_THEME, reverse[theme], "animation_theme")
+
+
+def write_touch_unlock(enabled: bool, distance: str = "average") -> BleWrite:
+    """Configure proximity (touch) unlock.
+
+    The app serialises ``TouchUnlockData(rssi, enabled)`` as a CBOR map.
+    """
+    if distance not in TOUCH_UNLOCK_RSSI:
+        raise ValueError(f"Invalid touch unlock distance: {distance}")
+    return BleWrite(
+        WriteTopic.TOUCH_UNLOCK,
+        {"rssi": TOUCH_UNLOCK_RSSI[distance], "enabled": bool(enabled)},
+        "touch_unlock",
+    )
 
 
 def build_fragments(payload: bytes, mtu: int = 244) -> list[bytes]:
@@ -227,3 +441,22 @@ class FragmentReassembler:
             return parse_message(message)
 
         return None
+
+
+# ---------------------------------------------------------------------------
+# Value decoders
+# ---------------------------------------------------------------------------
+
+
+def decode_packed_version(value: object | None) -> str | None:
+    """Decode a packed u32 version into ``major.minor.build``.
+
+    App: bytes [b3, b2, b1, b0] -> ``b3 . b2 . (b1<<8 | b0)``. Used for the
+    Find My module versions on topic 192 (``{"fw": u32, "findMy": u32}``).
+    """
+    if not isinstance(value, int) or isinstance(value, bool):
+        return None
+    major = (value >> 24) & 0xFF
+    minor = (value >> 16) & 0xFF
+    build = value & 0xFFFF
+    return f"{major}.{minor}.{build}"

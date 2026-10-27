@@ -6,7 +6,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
-from .coordinator import VanMoofCoordinatorData, VanMoofDataUpdateCoordinator
+from .coordinator import VanMoofDataUpdateCoordinator
 from .models import BikeState, VanMoofBike
 
 
@@ -38,5 +38,5 @@ class VanMoofEntity(CoordinatorEntity[VanMoofDataUpdateCoordinator]):
             manufacturer="VanMoof",
             model=self.bike.display_model,
             serial_number=self.bike.frame_number,
-            sw_version=self.bike_state.firmware_info,
+            sw_version=self.bike_state.firmware_version,
         )

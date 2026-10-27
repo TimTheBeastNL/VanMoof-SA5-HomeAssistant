@@ -22,29 +22,93 @@
       "init": {
         "title": "VanMoof-opties",
         "data": {
-          "poll_interval": "Pollinterval (seconden)"
+          "poll_interval": "Poll-interval (seconden)"
         }
       }
     }
   },
   "entity": {
     "sensor": {
-      "battery": { "name": "Accu" },
-      "module_battery": { "name": "Module-accu" },
-      "distance": { "name": "Afstand" },
-      "power_level": { "name": "Ondersteuningsniveau" },
-      "connection_state": { "name": "Verbindingsstatus" },
-      "last_seen": { "name": "Laatst gezien" },
-      "light_mode": { "name": "Lichtmodus" },
-      "firmware_info": { "name": "Firmware-info" },
-      "errors": { "name": "Fouten" }
+      "battery": {
+        "name": "Accu"
+      },
+      "module_battery": {
+        "name": "Module-accu"
+      },
+      "distance": {
+        "name": "Afstand"
+      },
+      "power_level": {
+        "name": "Ondersteuningsniveau"
+      },
+      "connection_state": {
+        "name": "Verbindingsstatus"
+      },
+      "last_seen": {
+        "name": "Laatst gezien"
+      },
+      "light_mode": {
+        "name": "Lichtmodus"
+      },
+      "firmware_info": {
+        "name": "Firmware-info"
+      },
+      "errors": {
+        "name": "Fouten"
+      },
+      "lock_state": {
+        "name": "Slotstatus",
+        "state": {
+          "locked": "Vergrendeld",
+          "unlocking": "Wordt ontgrendeld",
+          "unlocked": "Ontgrendeld"
+        }
+      },
+      "bike_state": {
+        "name": "Fietsstatus",
+        "state": {
+          "off": "Uit",
+          "shipping": "Verzending",
+          "standby": "Stand-by",
+          "on": "Aan"
+        }
+      },
+      "region": {
+        "name": "Regio",
+        "state": {
+          "eu": "EU",
+          "us": "VS",
+          "japan": "Japan",
+          "offroad": "Offroad"
+        }
+      },
+      "speed_limit": {
+        "name": "Snelheidslimiet"
+      },
+      "firmware_version": {
+        "name": "Firmwareversie"
+      },
+      "find_my_version": {
+        "name": "Find My-versie"
+      }
     },
     "binary_sensor": {
-      "locked": { "name": "Vergrendeld" },
-      "in_range": { "name": "Binnen bereik" }
+      "locked": {
+        "name": "Vergrendeld"
+      },
+      "in_range": {
+        "name": "Binnen bereik"
+      }
     },
     "button": {
-      "refresh": { "name": "Nu vernieuwen" }
+      "refresh": {
+        "name": "Nu vernieuwen"
+      }
+    },
+    "update": {
+      "firmware": {
+        "name": "Firmware"
+      }
     }
   }
 }

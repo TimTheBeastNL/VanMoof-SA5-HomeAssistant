@@ -6,10 +6,21 @@ Home Assistant integration for the VanMoof S/A5 e-bike series. This custom integ
 
 ## Features
 
-- Battery sensor
-- Lock state, power level, light mode & speed limit
-- Total distance
-- BLE-based communication with automatic reconnection
+**Sensors**
+- Battery and module battery, total distance, bike state (off / standby / on), lock state
+- Region and speed limit, firmware version
+- Firmware update entity: shows when the bike reports a newer firmware (install it with the VanMoof app)
+- Error count with the error map reported by the bike as attributes
+
+**Connection**
+- Works with local Bluetooth adapters and ESPHome Bluetooth proxies through the Home Assistant Bluetooth stack
+
+Read only: this version does not change any setting on the bike. Firmware flashing is not exposed on purpose.
+
+### Notes
+
+- Protocol details: [docs/PROTOCOL.md](docs/PROTOCOL.md)
+- Only SA5/A5 bikes are supported. The S6 uses a different Bluetooth service.
 
 ## Install via HACS
 
